@@ -1,4 +1,6 @@
-This library was born out of pain while using the existing python oauth libraries.
+# EASY python oauth library
+
+This library was born out of pain while using the existing python oauth libraries. It simply makes some helper classes to reduce the mistakes that are made with using the existing library.
 
 Here is how to do 3-legged OAuth in Google App Engine.
 
@@ -76,3 +78,11 @@ main.py
 
     if __name__ == '__main__':
         main()
+
+To use it in another setting, you need to write a different db component (oauth.db) and tell the oauth library to use it. Just implement the 2 classes and related methods and everything should just work. Something like:
+
+    import oauth.db.mysql
+    import oauth
+    oauth.db = oauth.db.mysql
+
+Please post here if you have any issues.
