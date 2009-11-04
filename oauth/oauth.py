@@ -92,15 +92,15 @@ class OAuthToken(object):
     secret -- the token secret
 
     """
-    key = None
-    secret = None
     callback = None
     callback_confirmed = None
     verifier = None
 
-    def __init__(self, key, secret):
+    def __init__(self, key, secret, expires_in, session_handle=None):
         self.key = key
         self.secret = secret
+        self.expires_in = expires_in
+        self.session_handle = session_handle
 
     def set_callback(self, callback):
         self.callback = callback
@@ -132,6 +132,8 @@ class OAuthToken(object):
         }
         if self.callback_confirmed is not None:
             data['oauth_callback_confirmed'] = self.callback_confirmed
+        if self.session_handle is not None:
+            data['oauth_session_handle'] = self.callback_confirmed
         return urllib.urlencode(data)
  
     def from_string(s):
@@ -139,9 +141,16 @@ class OAuthToken(object):
         oauth_token_secret=xxx&oauth_token=xxx
         """
         params = cgi.parse_qs(s, keep_blank_values=False)
-        key = params['oauth_token'][0]
-        secret = params['oauth_token_secret'][0]
-        token = OAuthToken(key, secret)
+        try :
+            key = params['oauth_token'][0]
+            secret = params['oauth_token_secret'][0]
+            expires_in = int(params['oauth_expires_in'][0])
+        except KeyError:
+            raise Exception("Can't parse token: " + s)
+
+        session = params.get('oauth_session_handle', [None])[0]
+
+        token = OAuthToken(key, secret, expires_in, session)
         try:
             token.callback_confirmed = params['oauth_callback_confirmed'][0]
         except KeyError:
@@ -216,16 +225,24 @@ class OAuthRequest(object):
 
     def to_url(self):
         """Serialize as a URL for a GET request."""
-        return '%s?%s' % (self.get_normalized_http_url(), self.to_postdata())
+        sep = "?"
+        if "?" in self.http_url :
+            sep = "&"
+        return '%s%s%s' % (self.http_url, sep, self.to_postdata())
 
     def get_normalized_parameters(self):
         """Return a string that contains the parameters that must be signed."""
-        params = self.parameters
+        params = dict(self.parameters)
         try:
             # Exclude the signature if it exists.
             del params['oauth_signature']
         except:
             pass
+        param_str = urlparse.urlparse(self.http_url)[4] # query
+        url_params = cgi.parse_qs(param_str, keep_blank_values=False)
+        url_params = OAuthRequest._split_url_string(param_str)
+        params.update(url_params)
+
         # Escape key values before sorting.
         key_values = [(escape(_utf8_str(k)), escape(_utf8_str(v))) \
             for k,v in params.items()]
@@ -318,6 +335,8 @@ class OAuthRequest(object):
             parameters['oauth_token'] = token.key
             if token.callback:
                 parameters['oauth_callback'] = token.callback
+            if token.session_handle:
+                parameters['oauth_session_handle'] = token.session_handle
             # 1.0a support for verifier.
             if verifier:
                 parameters['oauth_verifier'] = verifier
