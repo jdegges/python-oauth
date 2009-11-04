@@ -81,8 +81,7 @@ main.py
 
 To use it in another setting, you need to write a different db component (oauth.db) and tell the oauth library to use it. Just implement the 2 classes and related methods and everything should just work. Something like:
 
-    import oauth.db.mysql
-    import oauth
-    oauth.db = oauth.db.mysql
+    import oauth.db.mysql as db
+    twitter = oauth.consumers.TwitterOAuthClient(config.twitter.CONSUMER_KEY, config.twitter.CONSUMER_SECRET, callback, db=db)
 
 Please post here if you have any issues.

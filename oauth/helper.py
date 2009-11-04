@@ -28,16 +28,18 @@ import httplib
 import urllib2
 import time
 import oauth
-import db.appengine as db
 
 class OAuthClient(oauth.OAuthClient):
     """A client to help simplify the oauth pain"""
     signature_method_hmac_sha1 = oauth.OAuthSignatureMethod_HMAC_SHA1()
 
-    def __init__(self, consumer_key, consumer_secret, callback_url):
+    def __init__(self, consumer_key, consumer_secret, callback_url, db=None):
         consumer = oauth.OAuthConsumer(consumer_key, consumer_secret)
         self.consumer = consumer
         self.callback_url = callback_url
+        if not db :
+            import db.appengine as db
+        self.db = db
 
     @property
     def request_token_url(self):
@@ -86,14 +88,14 @@ class OAuthClient(oauth.OAuthClient):
         token = self.fetch_token(oauth_request)
         oauth_request = oauth.OAuthRequest.from_token_and_callback(token=token, http_url=self.authorization_url)
       
-        user = db.User(type=self.type)
+        user = self.db.User(type=self.type)
         user.set_request_token(token)
         user.save()
         return user, oauth_request.to_url()
        
 
     def verify(self, user, token, verifier):
-        if type(user) != db.User : user = db.User.get(user)
+        if type(user) != self.db.User : user = self.db.User.get(user)
 
         request_token = user.get_request_token()
         assert token == request_token.key
@@ -108,7 +110,7 @@ class OAuthClient(oauth.OAuthClient):
         return True
 
     def refresh(self, user):
-        if type(user) != db.User : user = db.User.get(user)
+        if type(user) != self.db.User : user = self.db.User.get(user)
 
         access_token = user.get_access_token()
         request = oauth.OAuthRequest.from_consumer_and_token(
@@ -122,7 +124,7 @@ class OAuthClient(oauth.OAuthClient):
         
 
     def fetch(self, url, user, *args, **kwargs):
-        if type(user) != db.User : user = db.User.get(user)
+        if type(user) != self.db.User : user = self.db.User.get(user)
 
         access_token = user.get_access_token()
         request = oauth.OAuthRequest.from_consumer_and_token(
