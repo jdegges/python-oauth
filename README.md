@@ -11,6 +11,7 @@ Starts the process with your provider. @return (user, url). Give the `user.get_k
 ## def verify(user, token, verifier):
 
 Verifies the user authorized your correctly. The parameters are
+
 * user - The `user.get_key()` from the `start()` method
 * token - The GET parameter `oauth_token`
 * verifier - The GET parameter `oauth_verifier`
