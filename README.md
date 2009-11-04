@@ -19,7 +19,7 @@ main.py
     import oauth.consumers
     import config
 
-    callback = "http://example.com/yahoo/callback"
+    callback = "http://example.com/twitter/callback"
     twitter = oauth.consumers.TwitterOAuthClient(config.twitter.CONSUMER_KEY, config.twitter.CONSUMER_SECRET, callback)
     
     
