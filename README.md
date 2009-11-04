@@ -19,7 +19,7 @@ main.py
     import oauth.consumers
     import config
 
-    callback = "http://example.com/twitter/callback"
+    callback = "http://%s/twitter/callback" % os.environ['HTTP_HOST']
     twitter = oauth.consumers.TwitterOAuthClient(config.twitter.CONSUMER_KEY, config.twitter.CONSUMER_SECRET, callback)
     
     
@@ -27,6 +27,7 @@ main.py
         
         def get(self):
             self.redirect('/twitter')
+
 
     class TwitterHandler(webapp.RequestHandler):
 
