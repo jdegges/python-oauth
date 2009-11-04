@@ -144,11 +144,12 @@ class OAuthToken(object):
         try :
             key = params['oauth_token'][0]
             secret = params['oauth_token_secret'][0]
-            expires_in = int(params['oauth_expires_in'][0])
         except KeyError:
             raise Exception("Can't parse token: " + s)
 
         session = params.get('oauth_session_handle', [None])[0]
+        expires_in = params.get('oauth_expires_in', [60*60*24*365*50])[0] # 50 year default
+        expires_in = int(expires_in)
 
         token = OAuthToken(key, secret, expires_in, session)
         try:
