@@ -2,7 +2,31 @@
 
 This library was born out of pain while using the existing python oauth libraries. It simply makes some helper classes to reduce the mistakes that are made with using the existing library.
 
-Here is how to do 3-legged OAuth in Google App Engine.
+# 3 Methods to care about
+
+## def start():
+
+Starts the process with your provider. @return (user, url). Give the `user.get_key()` string as a cookie, and redirect them to the url.
+
+## def verify(user, token, verifier):
+
+Verifies the user authorized your correctly. The parameters are
+* user - The `user.get_key()` from the `start()` method
+* token - The GET parameter `oauth_token`
+* verifier - The GET parameter `oauth_verifier`
+
+## def fetch(url, user):
+
+Does an oauth authenticated fetch. @return a file-like object from `urllib2.urlopen()`. The paremters
+
+* url - The remote url to request
+* user - The `user.get_key()` from the `start()` method
+
+And that's it!
+
+# Examples
+
+## 3-legged OAuth in Google App Engine
 
     $ cp google_appengine/new_project_template cool_oauth_app
     $ cd cool_oauth_app
