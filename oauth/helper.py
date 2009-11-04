@@ -39,7 +39,7 @@ class Token(db.Model):
     """
     token = db.TextProperty(required=True)
     secret = db.StringProperty(required=True)
-    expires_in = db.IntegerProperty(required=True)
+    expires_in = db.IntegerProperty()
     session_handle = db.StringProperty()
     type = db.StringProperty(required=True)
     
@@ -56,12 +56,13 @@ class Token(db.Model):
     
     created = db.DateTimeProperty(auto_now_add=True)
     modified = db.DateTimeProperty(auto_now=True)
-   
+
 
 class User(db.Model):
     request_token = db.ReferenceProperty(Token, collection_name="request_users")
     access_token = db.ReferenceProperty(Token, collection_name="access_users")
     primary_key = db.StringProperty()
+    type = db.StringProperty()
 
     def set_access_token(self, access_token):
         token = Token(access_token, type="access")
@@ -95,10 +96,10 @@ class User(db.Model):
             chars = string.letters + string.digits
             self.primary_key = ''.join(random.sample(chars, 20))
         return self.put()
-    
+
     created = db.DateTimeProperty(auto_now_add=True)
     modified = db.DateTimeProperty(auto_now=True)
-   
+
 
 class OAuthClient(oauth.OAuthClient):
     """A client to help simplify the oauth pain"""
@@ -121,12 +122,14 @@ class OAuthClient(oauth.OAuthClient):
     def access_token_url(self):
         raise NotImplemented()
 
+    type = "unknown"
+
     def fetch_token(self, oauth_request):
         # returns OAuthToken
         response = self.urlopen(oauth_request.to_url())
         return oauth.OAuthToken.from_string(response.read())
 
-    def urlopen(self, url, user_key=None, *args, **kwargs):
+    def urlopen(self, url, user=None, *args, **kwargs):
         # print "\n%s\n" % url
         try :
             response = urllib2.urlopen(url)
@@ -134,9 +137,9 @@ class OAuthClient(oauth.OAuthClient):
             error = why.headers.get("www-authenticate", None)
             if why.code == 401 :
                 if error.find("token_expired") != -1:
-                    if user_key:
-                        self.refresh(user_key)
-                        return self.fetch(url, user_key, *args, **kwargs)
+                    if user:
+                        self.refresh(user)
+                        return self.fetch(url, user, *args, **kwargs)
             if error :
                 why.msg = error
             raise why
@@ -154,15 +157,15 @@ class OAuthClient(oauth.OAuthClient):
         token = self.fetch_token(oauth_request)
         oauth_request = oauth.OAuthRequest.from_token_and_callback(token=token, http_url=self.authorization_url)
       
-        user = User()
+        user = User(type=self.type)
         user.set_request_token(token)
         user.save()
 
         return user, oauth_request.to_url()
        
 
-    def verify(self, user_key, token, verifier):
-        user = User.get(user_key)
+    def verify(self, user, token, verifier):
+        if type(user) != User : user = User.get(user)
 
         request_token = user.get_request_token()
         assert token == request_token.key
@@ -176,9 +179,9 @@ class OAuthClient(oauth.OAuthClient):
         user.save()
         return True
 
-    def refresh(self, user_key):
-        user = User.get(user_key)
-        
+    def refresh(self, user):
+        if type(user) != User : user = User.get(user)
+
         access_token = user.get_access_token()
         request = oauth.OAuthRequest.from_consumer_and_token(
             self.consumer, token=access_token, http_url=self.access_token_url
@@ -190,8 +193,8 @@ class OAuthClient(oauth.OAuthClient):
         return True
         
 
-    def fetch(self, url, user_key, *args, **kwargs):
-        user = User.get(user_key)
+    def fetch(self, url, user, *args, **kwargs):
+        if type(user) != User : user = User.get(user)
 
         access_token = user.get_access_token()
         request = oauth.OAuthRequest.from_consumer_and_token(
@@ -199,4 +202,4 @@ class OAuthClient(oauth.OAuthClient):
         )
         request.sign_request(self.signature_method_hmac_sha1, self.consumer, access_token)
         url = request.to_url()
-        return self.urlopen(url, user_key)
+        return self.urlopen(url, user)
