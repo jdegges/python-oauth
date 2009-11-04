@@ -65,7 +65,7 @@ class OAuthClient(oauth.OAuthClient):
         except urllib2.HTTPError, why :
             error = why.headers.get("www-authenticate", None)
             if why.code == 401 :
-                if error.find("token_expired") != -1:
+                if error and error.find("token_expired") != -1:
                     if user:
                         self.refresh(user)
                         return self.fetch(url, user, *args, **kwargs)

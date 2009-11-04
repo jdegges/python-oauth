@@ -1,6 +1,9 @@
 This library was born out of pain while using the existing python oauth libraries.
 
-Here is how to do 3-legged OAuth in Google App Engine
+Here is how to do 3-legged OAuth in Google App Engine.
+
+    $ git clone git@github.com:ptarjan/python-oauth.git
+    $ ln -s python-oauth/oauth
 
 config.py
     
