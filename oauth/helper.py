@@ -77,6 +77,19 @@ class OAuthClient(oauth.OAuthClient):
 
         return response
 
+    def refresh(self, user):
+        if type(user) != self.db.User : user = self.db.User.get(user)
+
+        access_token = user.get_access_token()
+        request = oauth.OAuthRequest.from_consumer_and_token(
+            self.consumer, token=access_token, http_url=self.access_token_url
+        )
+        request.sign_request(self.signature_method_hmac_sha1, self.consumer, access_token)
+        access_token = self.fetch_token(request)
+        user.set_access_token(access_token)
+        user.save()
+        return True
+
     ############ START OF API #############
 
     def start(self):
@@ -104,19 +117,6 @@ class OAuthClient(oauth.OAuthClient):
             self.consumer, token=request_token, verifier=verifier, http_url=self.access_token_url
         )
         request.sign_request(self.signature_method_hmac_sha1, self.consumer, request_token)
-        access_token = self.fetch_token(request)
-        user.set_access_token(access_token)
-        user.save()
-        return True
-
-    def refresh(self, user):
-        if type(user) != self.db.User : user = self.db.User.get(user)
-
-        access_token = user.get_access_token()
-        request = oauth.OAuthRequest.from_consumer_and_token(
-            self.consumer, token=access_token, http_url=self.access_token_url
-        )
-        request.sign_request(self.signature_method_hmac_sha1, self.consumer, access_token)
         access_token = self.fetch_token(request)
         user.set_access_token(access_token)
         user.save()
