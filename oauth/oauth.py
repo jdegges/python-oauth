@@ -133,7 +133,7 @@ class OAuthToken(object):
         if self.callback_confirmed is not None:
             data['oauth_callback_confirmed'] = self.callback_confirmed
         if self.session_handle is not None:
-            data['oauth_session_handle'] = self.callback_confirmed
+            data['oauth_session_handle'] = self.session_handle
         return urllib.urlencode(data)
  
     def from_string(s):
@@ -240,9 +240,9 @@ class OAuthRequest(object):
         except:
             pass
         param_str = urlparse.urlparse(self.http_url)[4] # query
-        url_params = cgi.parse_qs(param_str, keep_blank_values=False)
-        url_params = OAuthRequest._split_url_string(param_str)
-        params.update(url_params)
+        for p in param_str.split("&"):
+            k,v = p.split("=", 1)
+            params[k] = v
 
         # Escape key values before sorting.
         key_values = [(escape(_utf8_str(k)), escape(_utf8_str(v))) \
