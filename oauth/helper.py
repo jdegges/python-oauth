@@ -72,6 +72,8 @@ class OAuthClient(oauth.OAuthClient):
                         return self.fetch(url, user, *args, **kwargs)
             if error :
                 why.msg = error
+            else :
+                why.msg += "\n" + url + "\n" + "".join(why.readlines())
             raise why
 
         return response
@@ -91,10 +93,10 @@ class OAuthClient(oauth.OAuthClient):
 
     ############ START OF API #############
 
-    def start(self):
+    def start(self, *args, **kwargs):
         """Starts the authorization process and returns the token, url to give the user"""
         oauth_request = oauth.OAuthRequest.from_consumer_and_token(
-            self.consumer, callback=self.callback_url, http_url=self.request_token_url
+            self.consumer, callback=self.callback_url, http_url=self.request_token_url, parameters=kwargs
         )
         oauth_request.sign_request(self.signature_method_hmac_sha1, self.consumer, None)
         token = self.fetch_token(oauth_request)
@@ -107,14 +109,14 @@ class OAuthClient(oauth.OAuthClient):
         return user, oauth_request.to_url()
        
 
-    def verify(self, user, token, verifier=None):
+    def verify(self, user, token, verifier=None, *args, **kwargs):
         if not isinstance(user, self.db.User) : user = self.db.User.get(user)
 
         request_token = user.get_request_token()
         assert token == request_token.key
 
         request = oauth.OAuthRequest.from_consumer_and_token(
-            self.consumer, token=request_token, verifier=verifier, http_url=self.access_token_url
+            self.consumer, token=request_token, verifier=verifier, http_url=self.access_token_url, parameters=kwargs
         )
         request.sign_request(self.signature_method_hmac_sha1, self.consumer, request_token)
         access_token = self.fetch_token(request)
@@ -128,7 +130,7 @@ class OAuthClient(oauth.OAuthClient):
 
         access_token = user.get_access_token()
         request = oauth.OAuthRequest.from_consumer_and_token(
-            self.consumer, token=access_token, http_url=url, **kwargs
+            self.consumer, token=access_token, http_url=url, parameters=kwargs
         )
         request.sign_request(self.signature_method_hmac_sha1, self.consumer, access_token)
         url = request.to_url()
