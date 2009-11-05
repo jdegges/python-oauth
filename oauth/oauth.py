@@ -241,8 +241,10 @@ class OAuthRequest(object):
             pass
         param_str = urlparse.urlparse(self.http_url)[4] # query
         for p in param_str.split("&"):
-            k,v = p.split("=", 1)
-            params[k] = v
+            s = p.split("=", 1)
+            if len(s) == 2 :
+                k,v = s
+                params[k] = v
 
         # Escape key values before sorting.
         key_values = [(escape(_utf8_str(k)), escape(_utf8_str(v))) \
