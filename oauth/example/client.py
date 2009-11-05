@@ -52,7 +52,7 @@ def run_two_legged():
 def pause():
     print ''
     import time
-    # time.sleep(1)
+    time.sleep(1)
 
 if __name__ == '__main__':
     run_two_legged()
