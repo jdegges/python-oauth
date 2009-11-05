@@ -61,7 +61,6 @@ class OAuthClient(oauth.OAuthClient):
         return oauth.OAuthToken.from_string(response.read())
 
     def urlopen(self, url, user=None, *args, **kwargs):
-        # print "\n%s\n" % url
         try :
             response = urllib2.urlopen(url)
         except urllib2.HTTPError, why :
@@ -78,7 +77,7 @@ class OAuthClient(oauth.OAuthClient):
         return response
 
     def refresh(self, user):
-        if type(user) != self.db.User : user = self.db.User.get(user)
+        if not isinstance(user, self.db.User) : user = self.db.User.get(user)
 
         access_token = user.get_access_token()
         request = oauth.OAuthRequest.from_consumer_and_token(
@@ -99,16 +98,17 @@ class OAuthClient(oauth.OAuthClient):
         )
         oauth_request.sign_request(self.signature_method_hmac_sha1, self.consumer, None)
         token = self.fetch_token(oauth_request)
-        oauth_request = oauth.OAuthRequest.from_token_and_callback(token=token, http_url=self.authorization_url)
       
         user = self.db.User(type=self.type)
         user.set_request_token(token)
         user.save()
+
+        oauth_request = oauth.OAuthRequest.from_token_and_callback(token=token, http_url=self.authorization_url)
         return user, oauth_request.to_url()
        
 
-    def verify(self, user, token, verifier):
-        if type(user) != self.db.User : user = self.db.User.get(user)
+    def verify(self, user, token, verifier=None):
+        if not isinstance(user, self.db.User) : user = self.db.User.get(user)
 
         request_token = user.get_request_token()
         assert token == request_token.key
@@ -124,7 +124,7 @@ class OAuthClient(oauth.OAuthClient):
         
 
     def fetch(self, url, user, *args, **kwargs):
-        if type(user) != self.db.User : user = self.db.User.get(user)
+        if not isinstance(user, self.db.User) : user = self.db.User.get(user)
 
         access_token = user.get_access_token()
         request = oauth.OAuthRequest.from_consumer_and_token(
