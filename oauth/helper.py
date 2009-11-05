@@ -38,7 +38,7 @@ class OAuthClient(oauth.OAuthClient):
         self.consumer = consumer
         self.callback_url = callback_url
         if not db :
-            import db.appengine as db
+            import db.inmemory as db
         self.db = db
 
     @property
@@ -70,6 +70,7 @@ class OAuthClient(oauth.OAuthClient):
                     if user:
                         self.refresh(user)
                         return self.fetch(url, user, *args, **kwargs)
+            # print "\n%s" % why.headers
             if error :
                 why.msg = error
             else :
