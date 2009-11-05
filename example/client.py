@@ -5,7 +5,7 @@ class TestOAuthClient(oauth.helper.OAuthClient):
     request_token_url = 'http://term.ie/oauth/example/request_token.php'
     access_token_url  = 'http://term.ie/oauth/example/access_token.php'
     authorization_url = '' # only for 3 legged oauth
-    type = "yahoo"
+    type = "test"
 
 # key and secret granted by the service provider for this consumer application
 CONSUMER_KEY = 'key'
