@@ -17,3 +17,19 @@ class MyspaceOAuthClient(helper.OAuthClient):
     access_token_url  = 'http://api.myspace.com/oauth/access_token'
     authorization_url = 'http://api.myspace.com/oauth/authorize'
     type = "myspace"
+
+class GoogleOAuthClient(helper.OAuthClient):
+    request_token_url = 'https://www.google.com/accounts/OAuthGetRequestToken'
+    access_token_url  = 'https://www.google.com/accounts/OAuthGetAccessToken'
+    authorization_url = 'https://www.google.com/accounts/OAuthAuthorizeToken'
+
+    def __init__(self, *args, **kwargs):
+        if not kwargs.has_key('scope'):
+            raise Exception("No scope attribute")
+        self.scope = kwargs['scope']
+        del kwargs['scope']
+        return super(GoogleOAuthClient, self).__init__(*args, **kwargs)
+
+    def start(self, *args, **kwargs):
+        kwargs['scope'] = self.scope
+        return super(GoogleOAuthClient, self).start(*args, **kwargs)
