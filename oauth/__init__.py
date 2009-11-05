@@ -1,2 +1,2 @@
 from oauth import *
-from consumers import *
+from consumer import *

@@ -48,11 +48,12 @@ main.py
 
     from google.appengine.ext import webapp
 
-    import oauth.consumers
+    import oauth.consumer
+    import oauth.db.appengine
     import config
 
     callback = "http://%s/twitter/callback" % os.environ['HTTP_HOST']
-    twitter = oauth.consumers.TwitterOAuthClient(config.twitter.CONSUMER_KEY, config.twitter.CONSUMER_SECRET, callback)
+    twitter = oauth.consumer.Twitter(config.twitter.CONSUMER_KEY, config.twitter.CONSUMER_SECRET, callback, db=oauth.db.appengine)
     
     
     class MainHandler(webapp.RequestHandler):
@@ -104,9 +105,9 @@ main.py
     if __name__ == '__main__':
         main()
 
-To use it in another setting, you need to write a different db component (oauth.db) and tell the oauth library to use it. Just implement the 2 classes and related methods and everything should just work. Something like:
+To use it in another setting, you need to write a different db component (oauth.db) and tell the oauth library to use it. Just implement the User class and related methods and everything should just work. Something like:
 
     import oauth.db.mysql as db
-    twitter = oauth.consumers.TwitterOAuthClient(config.twitter.CONSUMER_KEY, config.twitter.CONSUMER_SECRET, callback, db=db)
+    twitter = oauth.consumer.Twitter(config.twitter.CONSUMER_KEY, config.twitter.CONSUMER_SECRET, callback, db=db)
 
 Please post here if you have any issues.
