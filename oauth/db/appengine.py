@@ -34,19 +34,29 @@ class User(db.Model):
     primary_key = db.StringProperty()
     type = db.StringProperty()
 
-    def set_access_token(self, access_token):
-        token = Token(access_token, type="access")
-        token.put()
-        self.access_token = token
     def set_request_token(self, request_token):
         token = Token(request_token, type="request")
         token.put()
+        if self.request_token:
+            self.request_token.delete()
         self.request_token = token
+    def set_access_token(self, access_token):
+        token = Token(access_token, type="access")
+        token.put()
+        if self.access_token:
+            self.access_token.delete()
+        self.access_token = token
 
     def get_request_token(self):
-        return self.request_token.makeToken()
+        token =  self.request_token
+        if token:
+            return token.makeToken()
+        return token
     def get_access_token(self):
-        return self.access_token.makeToken()
+        token =  self.access_token
+        if token:
+            return token.makeToken()
+        return token
     def get_key(self):
         """Make this non-guessable as it is the login token for this system"""
         return self.primary_key
