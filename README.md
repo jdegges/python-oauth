@@ -27,6 +27,35 @@ And that's it!
 
 # Examples
 
+## 3-legged OAuth with Out of Band callback
+
+config.py
+    
+    class twitter:
+        CONSUMER_KEY = 'put_yours'
+        CONSUMER_SECRET = 'put_yours'
+
+test.py
+
+    import sys
+    import oauth.consumer
+    import config
+
+    def do_oauth():
+        client = oauth.consumer.Twitter(config.twitter.CONSUMER_KEY, config.twitter.CONSUMER_SECRET, callback_url='oob')
+        user, url = client.start()
+
+        # the next 3 lines are for oob auth (normally done by a callback and then the `token` and `key` are request params)
+        print "Get the token from this url:\n%s\nToken: " % url
+        verify = sys.stdin.readline().strip()
+        token = user.get_request_token()
+
+        client.verify(user, token.key, verify)
+        response = client.fetch("http://twitter.com/account/verify_credentials.json", user)
+        print response.read()
+
+    do_oauth()
+
 ## 3-legged OAuth in Google App Engine
 
     $ cp google_appengine/new_project_template cool_oauth_app
@@ -108,6 +137,8 @@ main.py
 To use it in another setting, you need to write a different db component (oauth.db) and tell the oauth library to use it. Just implement the User class and related methods and everything should just work. Something like:
 
     import oauth.db.mysql as db
+    db.user = 'foo'
+    db.pass = 'bar'
     twitter = oauth.consumer.Twitter(config.twitter.CONSUMER_KEY, config.twitter.CONSUMER_SECRET, callback, db=db)
 
 Please post here if you have any issues.
