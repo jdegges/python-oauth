@@ -14,8 +14,8 @@ class Twitter(helper.OAuthClient):
 
 class Myspace(helper.OAuthClient):
     request_token_url = 'http://api.myspace.com/request_token'
-    access_token_url  = 'http://api.myspace.com/oauth/access_token'
-    authorization_url = 'http://api.myspace.com/oauth/authorize'
+    access_token_url  = 'http://api.myspace.com/access_token'
+    authorization_url = 'http://api.myspace.com/authorize'
     type = "myspace"
 
 class Google(helper.OAuthClient):
