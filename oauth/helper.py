@@ -70,11 +70,7 @@ class OAuthClient(oauth.OAuthClient):
                     if user:
                         self.refresh(user)
                         return self.fetch(url, user, *args, **kwargs)
-            # print "\n%s" % why.headers
-            if error :
-                why.msg = error
-            else :
-                why.msg += "\n" + url + "\n" + "".join(why.readlines())
+            why.msg += "\n%s\n%s\n%s" % (url, why.headers, "".join(why.readlines()))
             raise why
 
         return response
