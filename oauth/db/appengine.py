@@ -19,7 +19,7 @@ class Token(db.Model):
             kwargs['secret'] = oauth_token.secret
             kwargs['expires_in'] = oauth_token.expires_in
             kwargs['session_handle'] = oauth_token.session_handle
-        db.Model.__init__(self, *args, **kwargs)
+        super(Token, self).__init__(*args, **kwargs)
 
     def makeToken(self):
         return oauth.OAuthToken(self.token, self.secret, self.expires_in, self.session_handle)
@@ -76,6 +76,10 @@ class User(db.Model):
             chars = string.letters + string.digits
             self.primary_key = ''.join(random.sample(chars, 20))
         return self.put()
+    def delete(self):
+        request_token.delete()
+        access_token.delete()
+        return super(User, self).delete()
 
     created = db.DateTimeProperty(auto_now_add=True)
     modified = db.DateTimeProperty(auto_now=True)
