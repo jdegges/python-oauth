@@ -1,27 +1,6 @@
 """
-The MIT License
-
-Copyright (c) 2007 Leah Culver
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
-
-Yahoo Specific consumer
+A helper class that aims to make oauth slightly better than the 
+'brain surgery on a roller coaster' that it is today
 """
 
 import httplib
@@ -60,16 +39,16 @@ class OAuthClient(oauth.OAuthClient):
         response = self.urlopen(oauth_request.to_url())
         return oauth.OAuthToken.from_string(response.read())
 
-    def urlopen(self, url, user=None, *args, **kwargs):
+    def urlopen(self, url, old_url=None, user=None, *args, **kwargs):
         try :
             response = urllib2.urlopen(url)
         except urllib2.HTTPError, why :
             error = why.headers.get("www-authenticate", None)
             if why.code == 401 :
                 if error and error.find("token_expired") != -1:
-                    if user:
+                    if old_url and user:
                         self.refresh(user)
-                        return self.fetch(url, user, *args, **kwargs)
+                        return self.fetch(old_url, user, *args, **kwargs)
             why.msg += "\n%s\n%s\n%s" % (url, why.headers, "".join(why.readlines()))
             raise why
 
@@ -87,6 +66,16 @@ class OAuthClient(oauth.OAuthClient):
         user.set_access_token(access_token)
         user.save()
         return True
+
+    def sign_url(self, url, user, *args, **kwargs):
+        if not isinstance(user, self.db.User) : user = self.db.User.get(user)
+
+        access_token = user.get_access_token()
+        request = oauth.OAuthRequest.from_consumer_and_token(
+            self.consumer, token=access_token, http_url=url, parameters=kwargs
+        )
+        request.sign_request(self.signature_method_hmac_sha1, self.consumer, access_token)
+        return request.to_url()
 
     ############ START OF API #############
 
@@ -123,12 +112,4 @@ class OAuthClient(oauth.OAuthClient):
         
 
     def fetch(self, url, user, *args, **kwargs):
-        if not isinstance(user, self.db.User) : user = self.db.User.get(user)
-
-        access_token = user.get_access_token()
-        request = oauth.OAuthRequest.from_consumer_and_token(
-            self.consumer, token=access_token, http_url=url, parameters=kwargs
-        )
-        request.sign_request(self.signature_method_hmac_sha1, self.consumer, access_token)
-        url = request.to_url()
-        return self.urlopen(url, user)
+        return self.urlopen(self.sign_url(url, user), url, user, *args, **kwargs)
