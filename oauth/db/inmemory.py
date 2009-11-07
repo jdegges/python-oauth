@@ -15,6 +15,8 @@ class User:
     @staticmethod
     def get(key):
         return users[key]
+    def delete(self):
+        del users[key]
     def save(self):
         if not self.primary_key:
             import string
