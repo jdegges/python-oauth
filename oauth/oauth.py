@@ -182,8 +182,8 @@ class OAuthRequest(object):
     http_url = None
     version = VERSION
 
-    def __init__(self, http_method=HTTP_METHOD, http_url=None, parameters=None):
-        self.http_method = http_method
+    def __init__(self, http_method=None, http_url=None, parameters=None):
+        self.http_method = http_method or HTTP_METHOD
         self.http_url = http_url
         self.parameters = parameters or {}
 
@@ -315,10 +315,12 @@ class OAuthRequest(object):
     from_request = staticmethod(from_request)
 
     def from_consumer_and_token(oauth_consumer, token=None,
-            callback=None, verifier=None, http_method=HTTP_METHOD,
+            callback=None, verifier=None, http_method=None,
             http_url=None, parameters=None):
         if not parameters:
             parameters = {}
+        if not http_method:
+            http_method=HTTP_METHOD
 
         defaults = {
             'oauth_consumer_key': oauth_consumer.key,
@@ -346,10 +348,12 @@ class OAuthRequest(object):
         return OAuthRequest(http_method, http_url, parameters)
     from_consumer_and_token = staticmethod(from_consumer_and_token)
 
-    def from_token_and_callback(token, callback=None, http_method=HTTP_METHOD,
+    def from_token_and_callback(token, callback=None, http_method=None,
             http_url=None, parameters=None):
         if not parameters:
             parameters = {}
+        if not http_method:
+            http_method=HTTP_METHOD
 
         parameters['oauth_token'] = token.key
 

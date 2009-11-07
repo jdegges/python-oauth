@@ -67,12 +67,12 @@ class OAuthClient(oauth.OAuthClient):
         user.save()
         return True
 
-    def sign_url(self, url, user, *args, **kwargs):
+    def sign_url(self, url, user, http_method=None, *args, **kwargs):
         if not isinstance(user, self.db.User) : user = self.db.User.get(user)
 
         access_token = user.get_access_token()
         request = oauth.OAuthRequest.from_consumer_and_token(
-            self.consumer, token=access_token, http_url=url, parameters=kwargs
+            self.consumer, token=access_token, http_url=url, http_method=http_method, parameters=kwargs
         )
         request.sign_request(self.signature_method_hmac_sha1, self.consumer, access_token)
         return request.to_url()
