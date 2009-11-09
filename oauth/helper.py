@@ -8,6 +8,13 @@ import urllib2
 import time
 import oauth
 
+import logging
+
+class RefreshException(Exception):
+    pass
+class PermissionException(Exception):
+    pass
+
 class OAuthClient(oauth.OAuthClient):
     """A client to help simplify the oauth pain"""
     signature_method_hmac_sha1 = oauth.OAuthSignatureMethod_HMAC_SHA1()
@@ -34,21 +41,24 @@ class OAuthClient(oauth.OAuthClient):
 
     type = "unknown"
 
-    def fetch_token(self, oauth_request):
+    def fetch_token(self, oauth_request, user):
         # returns OAuthToken
-        response = self.urlopen(oauth_request.to_url())
+        response = self.urlopen(oauth_request.to_url(), user)
         return oauth.OAuthToken.from_string(response.read())
 
-    def urlopen(self, url, old_url=None, user=None, *args, **kwargs):
+    def urlopen(self, url, user, *args, **kwargs):
+        logging.debug(url)
+        # print "\n", url
         try :
             response = urllib2.urlopen(url)
         except urllib2.HTTPError, why :
             error = why.headers.get("www-authenticate", None)
-            if why.code == 401 :
-                if error and error.find("token_expired") != -1:
-                    if old_url and user:
-                        self.refresh(user)
-                        return self.fetch(old_url, user, *args, **kwargs)
+            if error:
+                if error.find("token_expired") != -1:
+                    self.refresh(user)
+                    raise RefreshException("New token aquired. Retry")
+                if error.find("permission_denied") != -1:
+                    raise PermissionException("Permission denied. Probably revoked OAuth: %s" % url)
             why.msg += "\n%s\n%s\n%s" % (url, why.headers, "".join(why.readlines()))
             raise why
 
@@ -62,7 +72,7 @@ class OAuthClient(oauth.OAuthClient):
             self.consumer, token=access_token, http_url=self.access_token_url
         )
         request.sign_request(self.signature_method_hmac_sha1, self.consumer, access_token)
-        access_token = self.fetch_token(request)
+        access_token = self.fetch_token(request, user)
         user.set_access_token(access_token)
         user.save()
         return True
@@ -85,9 +95,9 @@ class OAuthClient(oauth.OAuthClient):
             self.consumer, callback=self.callback_url, http_url=self.request_token_url, parameters=kwargs
         )
         oauth_request.sign_request(self.signature_method_hmac_sha1, self.consumer, None)
-        token = self.fetch_token(oauth_request)
       
         user = self.db.User(type=self.type)
+        token = self.fetch_token(oauth_request, user)
         user.set_request_token(token)
         user.save()
 
@@ -105,11 +115,16 @@ class OAuthClient(oauth.OAuthClient):
             self.consumer, token=request_token, verifier=verifier, http_url=self.access_token_url, parameters=kwargs
         )
         request.sign_request(self.signature_method_hmac_sha1, self.consumer, request_token)
-        access_token = self.fetch_token(request)
+        access_token = self.fetch_token(request, user)
         user.set_access_token(access_token)
         user.save()
         return True
         
 
-    def fetch(self, url, user, *args, **kwargs):
-        return self.urlopen(self.sign_url(url, user), url, user, *args, **kwargs)
+    def fetch(self, url, user, tries=1, *args, **kwargs):
+        try:
+            return self.urlopen(self.sign_url(url, user), user, *args, **kwargs)
+        except RefreshException, why:
+            if tries == 0:
+                raise why
+            return self.fetch(url, user, tries=tries-1, *args, **kwargs)
