@@ -77,8 +77,10 @@ class User(db.Model):
             self.primary_key = ''.join(random.sample(chars, 20))
         return self.put()
     def delete(self):
-        request_token.delete()
-        access_token.delete()
+        if self.request_token:
+            self.request_token.delete()
+        if self.access_token:
+            self.access_token.delete()
         return super(User, self).delete()
 
     created = db.DateTimeProperty(auto_now_add=True)
