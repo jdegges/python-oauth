@@ -1,0 +1,19 @@
+From the root of your project, run:
+
+    ln -s oauth/db/django_model oauth_model
+
+and then add this to your settings.py: 
+
+    INSTALLED_APPS = (
+        ...stuff...,
+        'oauth_model'
+    )
+
+and run:
+
+    python manage.py syncdb
+
+and you can initialize your consumers like:
+
+    import oauth_model
+    yahoo = oauth.consumer.Yahoo(config.yahoo.CONSUMER_KEY, config.yahoo.CONSUMER_SECRET, callback, db=oauth_model)

@@ -13,7 +13,7 @@ class User:
     def get_key(self):
         return self.primary_key
     @staticmethod
-    def get(key):
+    def get_from_key(key):
         return users[key]
     def delete(self):
         del users[key]

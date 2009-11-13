@@ -61,7 +61,7 @@ class User(db.Model):
         """Make this non-guessable as it is the login token for this system"""
         return self.primary_key
     @staticmethod
-    def get(key):
+    def get_from_key(key):
         """Given the string from key(), retrive the object from the DB"""
         r = User.all().filter("primary_key =", key).get()
         if r :

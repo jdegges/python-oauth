@@ -65,7 +65,7 @@ class OAuthClient(oauth.OAuthClient):
         return response
 
     def refresh(self, user):
-        if not isinstance(user, self.db.User) : user = self.db.User.get(user)
+        if not isinstance(user, self.db.User) : user = self.db.User.get_from_key(user)
 
         access_token = user.get_access_token()
         request = oauth.OAuthRequest.from_consumer_and_token(
@@ -78,7 +78,7 @@ class OAuthClient(oauth.OAuthClient):
         return True
 
     def sign_url(self, url, user, http_method=None, *args, **kwargs):
-        if not isinstance(user, self.db.User) : user = self.db.User.get(user)
+        if not isinstance(user, self.db.User) : user = self.db.User.get_from_key(user)
 
         access_token = user.get_access_token()
         request = oauth.OAuthRequest.from_consumer_and_token(
@@ -106,9 +106,10 @@ class OAuthClient(oauth.OAuthClient):
        
 
     def verify(self, user, token, verifier=None, *args, **kwargs):
-        if not isinstance(user, self.db.User) : user = self.db.User.get(user)
+        if not isinstance(user, self.db.User) : user = self.db.User.get_from_key(user)
 
         request_token = user.get_request_token()
+        key = request_token.key
         assert token == request_token.key
 
         request = oauth.OAuthRequest.from_consumer_and_token(
