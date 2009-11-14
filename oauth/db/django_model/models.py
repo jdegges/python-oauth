@@ -87,7 +87,7 @@ class User(models.Model):
             import random
             chars = string.letters + string.digits
             self.primary_key = ''.join(random.sample(chars, 20))
-            logging.error("new key: %s" % self.primary_key)
+            logging.info("new user (%s): %s" % (self.type, self.primary_key))
         return super(User, self).save()
     def delete(self):
         if self.request_token:
