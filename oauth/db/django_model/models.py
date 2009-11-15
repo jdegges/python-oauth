@@ -28,15 +28,6 @@ class Token(models.Model):
 
     def __unicode__(self):
         return "%s %s..." % (self.type, self.token[:10])
-    
-    created = models.DateTimeField()
-    modified = models.DateTimeField()
-    def save(self, *args, **kwargs):
-        ''' On save, update timestamps '''
-        if not self.id:
-            self.created = datetime.now()
-        self.modified = datetime.now()
-        return super(Token, self).save(*args, **kwargs)
 
 
 class User(models.Model):
@@ -97,9 +88,6 @@ class User(models.Model):
     def __unicode__(self):
         return "%s %s" % (self.type, self.primary_key)
 
-    created = models.DateTimeField()
-    modified = models.DateTimeField()
-
     def save(self, *args, **kwargs):
         if not self.primary_key:
             import string
@@ -107,9 +95,5 @@ class User(models.Model):
             chars = string.letters + string.digits
             self.primary_key = ''.join(random.sample(chars, 20))
             logging.info("new user (%s): %s" % (self.type, self.primary_key))
-        
-        if not self.id:
-            self.created = datetime.now()
-        self.modified = datetime.now()
 
         return super(User, self).save(*args, **kwargs)
