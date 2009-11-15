@@ -1,5 +1,6 @@
 import oauth
 import logging
+from datetime import datetime
 
 from django.db import models
 class Token(models.Model):
@@ -28,8 +29,14 @@ class Token(models.Model):
     def __unicode__(self):
         return "%s %s..." % (self.type, self.token[:10])
     
-    created = models.DateTimeField(auto_now_add=True)
-    modified = models.DateTimeField(auto_now=True)
+    created = models.DateTimeField()
+    modified = models.DateTimeField()
+    def save(self, *args, **kwargs):
+        ''' On save, update timestamps '''
+        if not self.id:
+            self.created = datetime.now()
+        self.modified = datetime.now()
+        return super(Token, self).save(*args, **kwargs)
 
 
 class User(models.Model):
@@ -80,15 +87,6 @@ class User(models.Model):
             return r
         raise Exception("Can't find object with key: %s" % key)
 
-    def save(self):
-        """Save this to the DB"""
-        if not self.primary_key:
-            import string
-            import random
-            chars = string.letters + string.digits
-            self.primary_key = ''.join(random.sample(chars, 20))
-            logging.info("new user (%s): %s" % (self.type, self.primary_key))
-        return super(User, self).save()
     def delete(self):
         if self.request_token:
             self.request_token.delete()
@@ -99,5 +97,19 @@ class User(models.Model):
     def __unicode__(self):
         return "%s %s" % (self.type, self.primary_key)
 
-    created = models.DateTimeField(auto_now_add=True)
-    modified = models.DateTimeField(auto_now=True)
+    created = models.DateTimeField()
+    modified = models.DateTimeField()
+
+    def save(self, *args, **kwargs):
+        if not self.primary_key:
+            import string
+            import random
+            chars = string.letters + string.digits
+            self.primary_key = ''.join(random.sample(chars, 20))
+            logging.info("new user (%s): %s" % (self.type, self.primary_key))
+        
+        if not self.id:
+            self.created = datetime.now()
+        self.modified = datetime.now()
+
+        return super(User, self).save(*args, **kwargs)
