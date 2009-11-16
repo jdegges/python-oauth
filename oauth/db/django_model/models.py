@@ -42,18 +42,22 @@ class User(models.Model):
     def set_request_token(self, request_token):
         token = Token.from_oauth_token(request_token, type="request")
         token.save()
+        """
         try:
             self.request_token and self.request_token.delete()
         except Token.DoesNotExist, why:
             pass
+        """
         self.request_token = token
     def set_access_token(self, access_token):
         token = Token.from_oauth_token(access_token, type="access")
         token.save()
+        """
         try:
             self.access_token and self.access_token.delete()
         except Token.DoesNotExist, why:
             pass
+        """
         self.access_token = token
 
     def get_request_token(self):
@@ -78,12 +82,15 @@ class User(models.Model):
             return r
         raise Exception("Can't find object with key: %s" % key)
 
+    """
+    # Getting weird behaviour, removing for now
     def delete(self):
         if self.request_token:
             self.request_token.delete()
         if self.access_token:
             self.access_token.delete()
         return super(User, self).delete()
+    """
     
     def __unicode__(self):
         return "%s %s" % (self.type, self.primary_key)
