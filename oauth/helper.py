@@ -60,7 +60,7 @@ class OAuthClient(oauth.OAuthClient):
                 if error.find("permission_denied") != -1:
                     raise PermissionException("Permission denied. Probably revoked OAuth: %s" % url)
             why.msg += "\n%s\n%s\n%s" % (url, why.headers, "".join(why.readlines()))
-            raise why
+            raise
 
         return response
 
@@ -127,5 +127,5 @@ class OAuthClient(oauth.OAuthClient):
             return self.urlopen(self.sign_url(url, user), user, *args, **kwargs)
         except RefreshException, why:
             if tries == 0:
-                raise why
+                raise
             return self.fetch(url, user, tries=tries-1, *args, **kwargs)
