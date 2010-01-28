@@ -10,8 +10,8 @@ class yahoo2leg:
     CONSUMER_SECRET = 'b0452b9380d48d10a2cbcb741344cea9c5f49408'
 
 class twitter:
-    CONSUMER_KEY = 'pawFyzXYRtrkLbW3CoYA'
-    CONSUMER_SECRET = 'krgRy8oRg2p9zEk4015oYsegy43fNpEDqM7bSXRAeM'
+    CONSUMER_KEY = 'S5Hn5ntYyBpHQNOIzneA'
+    CONSUMER_SECRET = '2jHbe97NmuZ8Tznz6SsOBE790pwjOBckHvD9kGCPEI8'
 
 class myspace:
     CONSUMER_KEY = 'b6d075aae92f4f6daf029bbf9656c18a'
